@@ -26,6 +26,7 @@ Recipe.init(
   {
     sequelize,
     modelName: "Recipe",
+    timestamps: false, // Disable createdAt and updatedAt
   }
 );
 

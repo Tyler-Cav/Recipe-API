@@ -11,7 +11,6 @@ const sequelize = new Sequelize(
   }
 );
 
-// Function to test the connection (call this once when your app starts)
 const testConnection = async () => {
   try {
     await sequelize.authenticate();

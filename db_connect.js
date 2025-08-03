@@ -11,4 +11,15 @@ const sequelize = new Sequelize(
   }
 );
 
-module.exports = sequelize;
+// Function to test the connection (call this once when your app starts)
+const testConnection = async () => {
+  try {
+    await sequelize.authenticate();
+    console.log("Connection has been established successfully.");
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+    throw error;
+  }
+};
+
+module.exports = { sequelize, testConnection };

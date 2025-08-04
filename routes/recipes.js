@@ -1,10 +1,17 @@
 const router = require("express").Router();
-const Recipe = require("../models/Recipe"); // Import the Recipe model
+const { Recipe, Ingredient } = require("../models"); // Import both models
 
-// Get all recipes
-router.get("/get-all", async (req, res) => {
+// Get all recipes with their ingredients
+router.get("/", async (req, res) => {
   try {
-    const recipes = await Recipe.findAll();
+    const recipes = await Recipe.findAll({
+      include: [
+        {
+          model: Ingredient,
+          as: "ingredients",
+        },
+      ],
+    });
     res.json(recipes);
   } catch (error) {
     console.error("Error fetching recipes:", error);
@@ -13,16 +20,54 @@ router.get("/get-all", async (req, res) => {
 });
 
 router.post("/add", async (req, res) => {
-  const { title, Ingredients, Instructions } = req.body;
+  const { title, Instructions, ingredients } = req.body;
+
+  // Start a database transaction
+  const transaction = await Recipe.sequelize.transaction();
 
   try {
-    const newRecipe = await Recipe.create({
-      title,
-      Ingredients,
-      Instructions,
+    // Create the recipe first
+    const newRecipe = await Recipe.create(
+      {
+        title,
+        Instructions,
+      },
+      { transaction }
+    );
+
+    // Create ingredients if they were provided
+    if (ingredients && Array.isArray(ingredients)) {
+      const ingredientPromises = ingredients.map((ingredient) =>
+        Ingredient.create(
+          {
+            ingredientType: ingredient.ingredienType,
+            measurement: ingredient.measurement,
+            recipeId: newRecipe.id,
+          },
+          { transaction }
+        )
+      );
+
+      await Promise.all(ingredientPromises);
+    }
+
+    // Commit the transaction
+    await transaction.commit();
+
+    // Fetch the complete recipe with ingredients to return
+    const completeRecipe = await Recipe.findByPk(newRecipe.id, {
+      include: [
+        {
+          model: Ingredient,
+          as: "ingredients",
+        },
+      ],
     });
-    res.status(201).json(newRecipe);
+
+    res.status(201).json(completeRecipe);
   } catch (error) {
+    // Rollback the transaction on error
+    await transaction.rollback();
     console.error("Error adding recipe:", error);
     res.status(500).json({ error: "Internal server error" });
   }

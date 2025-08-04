@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const { sequelize, testConnection } = require("./db_connect");
-const Recipe = require("./models/Recipe"); // Import the Recipe model
+const { Recipe, Ingredient } = require("./models"); // Import models with associations
 const routes = require("./routes"); // Import routes
 
 app.use(cors());

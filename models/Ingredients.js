@@ -1,29 +1,37 @@
 const { Sequelize, DataTypes, Model } = require("sequelize");
 const { sequelize } = require("../db_connect");
 
-class Recipe extends Model {}
+class Ingredient extends Model {}
 
-Recipe.init(
+Ingredient.init(
   {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
     },
-    title: {
+    ingredientType: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    Instructions: {
+    measurement: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    recipeId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: "Recipes",
+        key: "id",
+      },
     },
   },
   {
     sequelize,
-    modelName: "Recipe",
+    modelName: "Ingredient",
     timestamps: false, // Disable createdAt and updatedAt
   }
 );
 
-module.exports = Recipe;
+module.exports = Ingredient;
